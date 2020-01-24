@@ -11,6 +11,8 @@ to start the server.
 The script will prompt you to install [`miniserve`] if it isn't installed yet.  
 _(needs `cargo` to install `miniserve`)_
 
+By default, the page will be served at [`localhost:8080/index.html`](http://localhost:8080/index.html).
+
 Any command-line arguments for the `launch` script are passed  
 to the underlying `miniserve` command.  
 See `miniserve --help` for more info.  
