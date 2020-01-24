@@ -1,13 +1,20 @@
 async function loadModels() {
+    output("loading models...");
+    showLoading();
+
     const MODEL_URL =
         "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.0/weights/";
 
     await faceapi.loadSsdMobilenetv1Model(MODEL_URL);
     await faceapi.loadFaceLandmarkModel(MODEL_URL);
     await faceapi.loadFaceRecognitionModel(MODEL_URL);
+
+    output("done loading models");
+    hideLoading();
 }
 
 async function detectFaceFromImg(imgElement) {
+    output("detecting face...");
     showLoading();
 
     const fullFaceDescriptions = await faceapi
@@ -15,27 +22,11 @@ async function detectFaceFromImg(imgElement) {
         .withFaceLandmarks()
         .withFaceDescriptors();
 
+    output("done detecting face");
     hideLoading();
 
     console.log(fullFaceDescriptions);
-    // output(fullFaceDescriptions);
-}
-
-function showLoading() {
-    const loaderEl = getLoaderElement();
-    loaderEl.classList.remove("hidden");
-}
-
-function hideLoading() {
-    const loaderEl = getLoaderElement();
-    loaderEl.classList.add("hidden");
-}
-
-function getLoaderElement() {
-    const el = document.getElementsByClassName("loader-wrapper")[0];
-    if (!el)
-        throw new Error("No loader element");
-    return el;
+    output(JSON.stringify(fullFaceDescriptions));
 }
 
 async function main() {

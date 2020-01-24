@@ -1,11 +1,14 @@
 #output {
-    position: static;
+    position: fixed;
     display: block;
     bottom: 0;
     width: 100%;
     background-color: black;
     color: white;
-    height: 20%;
+    height: 40%;
+    overflow-y: scroll;
+    font-family: monospace;
+    padding: 8px;
 }
 
 .loader-wrapper {
