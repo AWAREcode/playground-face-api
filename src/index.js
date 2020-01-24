@@ -1,5 +1,5 @@
 async function loadModels() {
-    output("loading models...");
+    output("Loading models...");
     showLoading();
 
     const MODEL_URL =
@@ -9,20 +9,26 @@ async function loadModels() {
     await faceapi.loadFaceLandmarkModel(MODEL_URL);
     await faceapi.loadFaceRecognitionModel(MODEL_URL);
 
-    output("done loading models");
+    output("DONE loading models");
     hideLoading();
 }
 
 async function detectFaceFromImg(imgElement) {
-    output("detecting face...");
+    output("Detecting face...");
     showLoading();
 
-    const fullFaceDescriptions = await faceapi
-        .detectAllFaces(imgElement)
-        .withFaceLandmarks()
-        .withFaceDescriptors();
+    const detectOptions = new faceapi.SsdMobilenetv1Options({
+        minConfidence: 0.5,
+    });
 
-    output("done detecting face");
+    const fullFaceDescriptions = faceapi.resizeResults(
+        await faceapi
+        .detectAllFaces(imgElement, detectOptions)
+        .withFaceLandmarks()
+        .withFaceDescriptors()
+    );
+
+    output("DONE detecting face");
     hideLoading();
 
     console.log(fullFaceDescriptions);
