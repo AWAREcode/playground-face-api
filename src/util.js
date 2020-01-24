@@ -20,7 +20,8 @@ function error(errmsg) {
     newEl.classList.add("output--err");
     newEl.innerText = errmsg;
     addElementToOutput(newEl);
-    throw new Error(errmsg);
+    console.error(errmsg);
+    // throw new Error(errmsg);
 }
 
 function addElementToOutput(childEl) {

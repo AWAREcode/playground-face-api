@@ -1,24 +1,41 @@
-const state = {
+const SETTINGS = {
+    modelsToLoad: [
+        "ssdMobilenetv1",
+        // "tinyFaceDetector",
+        // "tinyYolov2",
+        // "mtcnn",
+        "faceLandmark68Net",
+        // "faceLandmark68TinyNet",
+        "faceRecognitionNet",
+        "faceExpressionNet",
+        // "ageGenderNet",
+    ],
+};
+
+const STATE = {
     areModelsLoaded: false,
 };
 
 async function loadModels() {
-    state.areModelsLoaded = false;
-    output("Loading models...");
+    STATE.areModelsLoaded = false;
+
+    let msg = "Loading models...\n";
+    msg += SETTINGS.modelsToLoad.map(model => `  - ${model}`).join(`\n`);
+    output(msg);
     showLoading();
 
     const MODEL_URL =
         "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.0/weights/";
 
-    await Promise.all([
-        faceapi.loadSsdMobilenetv1Model(MODEL_URL),
-        faceapi.loadFaceLandmarkModel(MODEL_URL),
-        faceapi.loadFaceRecognitionModel(MODEL_URL),
-    ]);
+    await Promise.all(
+        SETTINGS.modelsToLoad.map(
+            model => faceapi.nets[model].loadFromUri(MODEL_URL)
+        )
+    );
 
     output("DONE loading models");
     hideLoading();
-    state.areModelsLoaded = true;
+    STATE.areModelsLoaded = true;
 }
 
 async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
@@ -34,18 +51,28 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
         height: imgElement.height,
     };
 
-    const fullFaceDescriptions = faceapi.resizeResults(
-        await (
+    const err = e => error(`Error detecting face '${imgName}':\n${e}`);
+
+    let fullFaceDescriptions;
+
+    // TODO: Properly print error to output,
+    //       this isn't working properly right now.
+    try {
+        const results = await (
             faceapi
                 .detectAllFaces(imgElement, detectOptions)
                 .withFaceLandmarks()
                 .withFaceDescriptors()
                 .withFaceExpressions()
-        ).then(descs => descs).catch(e => {
-            error(`Error detecting face '${imgName}':\n${e}`);
-        }),
-        displaySize,
-    );
+        ); // .then(descs => descs).catch(err),
+
+        fullFaceDescriptions = faceapi.resizeResults(
+            results,
+            displaySize,
+        );
+    } catch (e) {
+        err(e);
+    }
 
     faceapi.matchDimensions(canvasElement, displaySize)
     faceapi.draw.drawDetections(canvasElement, fullFaceDescriptions);
@@ -55,7 +82,7 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
 
 
 async function runFaceDetections() {
-    if (!state.areModelsLoaded) {
+    if (!STATE.areModelsLoaded) {
         error("Models aren't loaded yet");
         return;
     }
