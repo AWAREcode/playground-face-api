@@ -3,18 +3,39 @@ body {
     padding: 0;
 }
 
+.playground {
+    position: absolute;
+    width: 400px;
+    height: 600px;
+    overflow: hidden;
+    border: solid black 2px;
+}
+
+.playground > img,canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
 #output {
     position: fixed;
     display: block;
     bottom: 0;
     width: 100%;
     background-color: black;
-    color: white;
     height: 30%;
     overflow-y: scroll;
     font-family: monospace;
     padding: 8px;
     opacity: 0.75;
+}
+
+.output--msg {
+    color: white;
+}
+
+.output--err {
+    color: red;
 }
 
 .loader-wrapper {
