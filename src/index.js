@@ -93,14 +93,16 @@ async function runFaceDetections() {
         document.getElementsByClassName("playground")
     );
 
-    Promise.all(playgrounds.map(playground => {
+    await Promise.all(playgrounds.map(playground => {
         const imgEl = playground.getElementsByTagName("img")[0];
         const canvasEl = playground.getElementsByTagName("canvas")[0];
         if (!imgEl)    error("No image element in playground");
         if (!canvasEl) error("No canvas element in playground");
 
         return detectFaceFromImgWithCanvas(imgEl, canvasEl);
-    })).finally(hideLoading);
+    }));
+
+    hideLoading();
 }
 
 function main() {
