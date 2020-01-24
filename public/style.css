@@ -5,16 +5,43 @@ body {
 
 .playground {
     position: absolute;
-    width: 400px;
-    height: 600px;
+    /* width: 400px; */
+    /* height: 600px; */
     overflow: hidden;
-    border: solid black 2px;
+    border: 2px solid black;
 }
 
 .playground > img,canvas {
     position: absolute;
     width: 100%;
     height: 100%;
+}
+
+.btn-group {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+}
+
+.btn {
+    display: block;
+    margin: 4px;
+    background-color: #dddddd;
+    border: 1px solid black;
+    min-width: 80px;
+    min-height: 32px;
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+}
+
+.btn:hover, .btn:active, .btn:focus {
+    box-shadow: 2px 2px black;
+    text-shadow: 2px 2px gray;
+}
+
+#btn-run {
 }
 
 #output {

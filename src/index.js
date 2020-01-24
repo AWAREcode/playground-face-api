@@ -1,4 +1,9 @@
+const state = {
+    areModelsLoaded: false,
+};
+
 async function loadModels() {
+    state.areModelsLoaded = false;
     output("Loading models...");
     showLoading();
 
@@ -13,6 +18,7 @@ async function loadModels() {
 
     output("DONE loading models");
     hideLoading();
+    state.areModelsLoaded = true;
 }
 
 async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
@@ -45,8 +51,12 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     console.log(fullFaceDescriptions);
 }
 
-async function main() {
-    await loadModels();
+
+async function runFaceDetections() {
+    if (!state.areModelsLoaded) {
+        error("Models aren't loaded yet");
+        return;
+    }
 
     const playgrounds = Array.from(
         document.getElementsByClassName("playground")
@@ -60,6 +70,14 @@ async function main() {
 
         detectFaceFromImgWithCanvas(imgEl, canvasEl);
     }
+}
+
+function main() {
+    const loadBtnEl = document.getElementById("btn-load");
+    loadBtnEl.onclick = loadModels;
+
+    const runBtnEl = document.getElementById("btn-run");
+    runBtnEl.onclick = runFaceDetections;
 }
 
 main();
