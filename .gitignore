@@ -1,1 +1,4 @@
+/bin/util.sh
+*.log
+/logs/
 _ignore/
