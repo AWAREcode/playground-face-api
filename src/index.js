@@ -24,7 +24,6 @@ async function loadModels() {
 async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     const imgName = imgElement.alt || imgElement.src.split("/").pop();
     output(`Detecting face '${imgName}'...`);
-    showLoading();
 
     const detectOptions = new faceapi.SsdMobilenetv1Options({
         minConfidence: 0.5,
@@ -36,10 +35,15 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     };
 
     const fullFaceDescriptions = faceapi.resizeResults(
-        await faceapi
-            .detectAllFaces(imgElement, detectOptions)
-            .withFaceLandmarks()
-            .withFaceDescriptors(),
+        await (
+            faceapi
+                .detectAllFaces(imgElement, detectOptions)
+                .withFaceLandmarks()
+                .withFaceDescriptors()
+                .withFaceExpressions()
+        ).then(descs => descs).catch(e => {
+            error(`Error detecting face '${imgName}':\n${e}`);
+        }),
         displaySize,
     );
 
@@ -47,7 +51,6 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     faceapi.draw.drawDetections(canvasElement, fullFaceDescriptions);
 
     output(`DONE detecting face '${imgName}'`);
-    hideLoading();
 }
 
 
@@ -57,18 +60,20 @@ async function runFaceDetections() {
         return;
     }
 
+    showLoading();
+
     const playgrounds = Array.from(
         document.getElementsByClassName("playground")
     );
 
-    for (let playground of playgrounds) {
+    Promise.all(playgrounds.map(playground => {
         const imgEl = playground.getElementsByTagName("img")[0];
         const canvasEl = playground.getElementsByTagName("canvas")[0];
         if (!imgEl)    error("No image element in playground");
         if (!canvasEl) error("No canvas element in playground");
 
-        detectFaceFromImgWithCanvas(imgEl, canvasEl);
-    }
+        return detectFaceFromImgWithCanvas(imgEl, canvasEl);
+    })).finally(hideLoading);
 }
 
 function main() {
