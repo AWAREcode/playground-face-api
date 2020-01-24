@@ -21,12 +21,10 @@ async function detectFaceFromImg(imgElement) {
         minConfidence: 0.5,
     });
 
-    const fullFaceDescriptions = faceapi.resizeResults(
-        await faceapi
+    const fullFaceDescriptions = await faceapi
         .detectAllFaces(imgElement, detectOptions)
         .withFaceLandmarks()
-        .withFaceDescriptors()
-    );
+        .withFaceDescriptors();
 
     output("DONE detecting face");
     hideLoading();
