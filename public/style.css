@@ -3,18 +3,22 @@ body {
     padding: 0;
 }
 
-.playground {
+.playground-group {
     position: absolute;
-    /* width: 400px; */
-    /* height: 600px; */
     overflow: hidden;
+}
+
+.playground {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
     border: 2px solid black;
 }
 
 .playground > img,canvas {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    /* width: 100%; */
+    /* height: 100%; */
 }
 
 .btn-group {
@@ -39,9 +43,6 @@ body {
 .btn:hover, .btn:active, .btn:focus {
     box-shadow: 2px 2px black;
     text-shadow: 2px 2px gray;
-}
-
-#btn-run {
 }
 
 #output {

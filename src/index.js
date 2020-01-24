@@ -22,7 +22,8 @@ async function loadModels() {
 }
 
 async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
-    output("Detecting face...");
+    const imgName = imgElement.alt || imgElement.src.split("/").pop();
+    output(`Detecting face '${imgName}'...`);
     showLoading();
 
     const detectOptions = new faceapi.SsdMobilenetv1Options({
@@ -45,10 +46,8 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     faceapi.matchDimensions(canvasElement, displaySize)
     faceapi.draw.drawDetections(canvasElement, fullFaceDescriptions);
 
-    output("DONE detecting face");
+    output(`DONE detecting face '${imgName}'`);
     hideLoading();
-
-    console.log(fullFaceDescriptions);
 }
 
 
