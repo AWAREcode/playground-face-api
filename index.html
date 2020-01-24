@@ -3,8 +3,19 @@
     <head>
         <meta charset="UTF-8">
         <title>Playground face-api.js</title>
+        <link rel="stylesheet" href="/public/style.css" />
     </head>
     <body>
+        <img
+            id="image"
+            src="/public/torvalds.jpg"
+            alt="Linus" />
+
+        <div class="loader-wrapper hidden">
+            <div class="loader"></div>
+        </div>
+        <div id="output"></div>
+
         <script
             type="text/javascript"
             src="https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.0/dist/face-api.min.js">
