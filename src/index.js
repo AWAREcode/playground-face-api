@@ -154,6 +154,8 @@ async function runFaceDetections() {
         return;
     }
 
+    clearVideoDetectionIntervals();
+
     showLoading();
 
     const playgrounds = Array.from(
@@ -163,6 +165,17 @@ async function runFaceDetections() {
     Promise
         .all(playgrounds.map(detectFacesFromPlayground))
         .finally(hideLoading);
+}
+
+function clearVideoDetectionIntervals() {
+    const intervalsAmount = STATE.videoFaceDetectionIntervals.length;
+    const hasMultipleIntervals = intervalsAmount !== 1;
+    STATE.videoFaceDetectionIntervals.forEach(clearInterval);
+    STATE.videoFaceDetectionIntervals = [];
+    if (intervalsAmount > 0)
+        output(
+            `Cleared ${intervalsAmount} video face detection interval${hasMultipleIntervals ? "s" : ""}`
+        );
 }
 
 function main() {
@@ -188,11 +201,29 @@ function setupError() {
 }
 
 function setupButtons() {
-    const loadBtnEl = document.getElementById("btn-load");
-    loadBtnEl.onclick = loadModels;
+    const btnConfigs = [
+        {
+            selector: "#btn-load",
+            onclick: loadModels,
+        },
+        {
+            selector: "#btn-run",
+            onclick: runFaceDetections,
+        },
+        {
+            selector: "#btn-clear-video-intervals",
+            onclick: clearVideoDetectionIntervals,
+        },
+    ];
 
-    const runBtnEl = document.getElementById("btn-run");
-    runBtnEl.onclick = runFaceDetections;
+    btnConfigs.forEach(btnConfig => {
+        const btnEl = document.querySelector(btnConfig.selector);
+        if (btnEl) {
+            btnEl.onclick = btnConfig.onclick;
+        } else {
+            error(`Button with selector '${btnConfig.selector}' doesn't exist in DOM`);
+        }
+    });
 }
 
 function setupWebcam() {
