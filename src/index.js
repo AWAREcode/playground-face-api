@@ -51,8 +51,6 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
         height: imgElement.height,
     };
 
-    const err = e => error(`Error detecting face '${imgName}':\n${e}`);
-
     let fullFaceDescriptions;
 
     // TODO: Properly print error to output,
@@ -71,15 +69,21 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
             displaySize,
         );
     } catch (e) {
-        err(e);
+        error(`Error detecting face '${imgName}':\n${e}`);
     }
 
-    faceapi.matchDimensions(canvasElement, displaySize)
-    faceapi.draw.drawDetections(canvasElement, fullFaceDescriptions);
+    faceapi.matchDimensions(canvasElement, displaySize);
+    drawFaceDescriptions(fullFaceDescriptions, canvasElement);
 
     output(`DONE detecting face '${imgName}'`);
 }
 
+function drawFaceDescriptions(faceDescriptions, canvasElement) {
+    output("Drawing face descriptions...")
+    faceapi.draw.drawDetections(canvasElement, faceDescriptions);
+    faceapi.draw.drawFaceLandmarks(canvasElement, faceDescriptions);
+    faceapi.draw.drawFaceExpressions(canvasElement, faceDescriptions);
+}
 
 async function runFaceDetections() {
     if (!STATE.areModelsLoaded) {
