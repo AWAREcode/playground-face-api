@@ -79,16 +79,16 @@ async function detectFacesFromPlayground(playgroundElement) {
             const detectOptions = new faceapi.SsdMobilenetv1Options({
                 minConfidence: 0.5,
             });
-            const faceDescriptions = await faceapi
-                .detectAllFaces(inputElement, detectOptions)
-                .withFaceLandmarks()
-                // .withFaceDescriptors()
-                .withFaceExpressions();
             const drawFunctions = [
                 "drawDetections",
                 "drawFaceLandmarks",
                 "drawFaceExpressions",
             ];
+            const faceDescriptions = await faceapi
+                .detectAllFaces(inputElement, detectOptions)
+                .withFaceLandmarks()
+                // .withFaceDescriptors()
+                .withFaceExpressions();
             drawFaceDescriptions(
                 faceDescriptions,
                 canvasElement,
@@ -99,6 +99,7 @@ async function detectFacesFromPlayground(playgroundElement) {
         }
         case "VIDEO": {
             const mtcnnOptions = new faceapi.MtcnnOptions({
+                minConfidence: 0.5, // I don't even know if this property is available for MtcnnOptions...
                 // "limiting the search space to larger faces for webcam detection"
                 minFaceSize: 150,
             });
