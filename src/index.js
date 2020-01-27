@@ -82,7 +82,7 @@ async function detectFacesFromPlayground(playgroundElement) {
             const faceDescriptions = await faceapi
                 .detectAllFaces(inputElement, detectOptions)
                 .withFaceLandmarks()
-                .withFaceDescriptors()
+                // .withFaceDescriptors()
                 .withFaceExpressions();
             const drawFunctions = [
                 "drawDetections",
@@ -100,13 +100,19 @@ async function detectFacesFromPlayground(playgroundElement) {
         case "VIDEO": {
             const mtcnnOptions = new faceapi.MtcnnOptions({
                 // "limiting the search space to larger faces for webcam detection"
-                minFaceSize: 200,
+                minFaceSize: 150,
             });
-            const drawFunctions = ["drawDetections"];
+            const drawFunctions = [
+                "drawDetections",
+                "drawFaceLandmarks",
+                "drawFaceExpressions",
+            ];
             const detectInterval = setInterval(
                 async () => {
                     faceDescriptions = await faceapi
-                        .detectAllFaces(inputElement, mtcnnOptions);
+                        .detectAllFaces(inputElement, mtcnnOptions)
+                        .withFaceLandmarks()
+                        .withFaceExpressions();
                     drawFaceDescriptions(
                         faceDescriptions,
                         canvasElement,
@@ -126,6 +132,7 @@ async function detectFacesFromPlayground(playgroundElement) {
     output(`DONE detecting face '${playgroundName}'`);
 }
 
+// TODO: Refactor these parameters. Should take a single options object.
 function drawFaceDescriptions(
     faceDescriptions,
     canvasElement,
