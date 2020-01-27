@@ -1,4 +1,10 @@
 const SETTINGS = {
+    dom: {
+        playgroundNameAttribute: "data-name",
+        playgroundInputSelector: ".playground-input",
+        playgroundCanvasSelector: "canvas",
+    },
+
     modelsToLoad: [
         "ssdMobilenetv1",
         // "tinyFaceDetector",
@@ -38,17 +44,27 @@ async function loadModels() {
     STATE.areModelsLoaded = true;
 }
 
-async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
-    const imgName = imgElement.alt || imgElement.src.split("/").pop();
-    output(`Detecting face '${imgName}'...`);
+async function detectFacesFromPlayground(playgroundElement) {
+    if (!playgroundElement) error("Playground wrapper element not given");
+
+    const playgroundName = playgroundElement
+        .getAttribute(SETTINGS.dom.playgroundNameAttribute) ||
+        "UNNAMED";
+    const inputElement = playgroundElement
+        .querySelector(SETTINGS.dom.playgroundInputSelector);
+
+    if (!inputElement) error("Playground needs an element to be used as the input");
+
+    output(`Detecting face '${playgroundName}'...`);
 
     const detectOptions = new faceapi.SsdMobilenetv1Options({
         minConfidence: 0.5,
     });
 
+    const nonNumRe = /\D/g;
     const displaySize = {
-        width:  imgElement.width,
-        height: imgElement.height,
+        width:  playgroundElement.style.width.replace(nonNumRe, ""),
+        height: playgroundElement.style.height.replace(nonNumRe, ""),
     };
 
     let fullFaceDescriptions;
@@ -58,7 +74,7 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
     try {
         const results = await (
             faceapi
-                .detectAllFaces(imgElement, detectOptions)
+                .detectAllFaces(inputElement, detectOptions)
                 .withFaceLandmarks()
                 .withFaceDescriptors()
                 .withFaceExpressions()
@@ -69,13 +85,13 @@ async function detectFaceFromImgWithCanvas(imgElement, canvasElement) {
             displaySize,
         );
     } catch (e) {
-        error(`Error detecting face '${imgName}':\n${e}`);
+        error(`Error detecting face '${playgroundName}':\n${e}`);
     }
 
     faceapi.matchDimensions(canvasElement, displaySize);
     drawFaceDescriptions(fullFaceDescriptions, canvasElement);
 
-    output(`DONE detecting face '${imgName}'`);
+    output(`DONE detecting face '${playgroundName}'`);
 }
 
 function drawFaceDescriptions(faceDescriptions, canvasElement) {
@@ -97,24 +113,19 @@ async function runFaceDetections() {
         document.getElementsByClassName("playground")
     );
 
-    await Promise.all(playgrounds.map(playground => {
-        const imgEl = playground.getElementsByTagName("img")[0];
-        const canvasEl = playground.getElementsByTagName("canvas")[0];
-        if (!imgEl)    error("No image element in playground");
-        if (!canvasEl) error("No canvas element in playground");
-
-        return detectFaceFromImgWithCanvas(imgEl, canvasEl);
-    }));
-
-    hideLoading();
+    Promise
+        .all(playgrounds.map(detectFacesFromPlayground))
+        .finally(hideLoading);
 }
 
 function main() {
-    const loadBtnEl = document.getElementById("btn-load");
-    loadBtnEl.onclick = loadModels;
+    window.onload = () => {
+        const loadBtnEl = document.getElementById("btn-load");
+        loadBtnEl.onclick = loadModels;
 
-    const runBtnEl = document.getElementById("btn-run");
-    runBtnEl.onclick = runFaceDetections;
+        const runBtnEl = document.getElementById("btn-run");
+        runBtnEl.onclick = runFaceDetections;
+    };
 }
 
 main();

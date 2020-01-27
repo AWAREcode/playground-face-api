@@ -15,7 +15,7 @@ body {
     border: 2px solid black;
 }
 
-.playground > img,canvas {
+.playground > * {
     position: absolute;
     /* width: 100%; */
     /* height: 100%; */
