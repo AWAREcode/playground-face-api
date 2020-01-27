@@ -1,6 +1,6 @@
 const SETTINGS = {
     dom: {
-        playgroundSelector:       ".playground",
+        playgroundSelector:       ".playground:not(.disabled)",
         playgroundNameAttribute:  "data-name",
         playgroundInputSelector:  ".playground-input",
         playgroundCanvasSelector: "canvas",
@@ -84,19 +84,35 @@ async function detectFacesFromPlayground(playgroundElement) {
                 .withFaceLandmarks()
                 .withFaceDescriptors()
                 .withFaceExpressions();
-            drawFaceDescriptions(faceDescriptions, canvasElement, displaySize);
+            const drawFunctions = [
+                "drawDetections",
+                "drawFaceLandmarks",
+                "drawFaceExpressions",
+            ];
+            drawFaceDescriptions(
+                faceDescriptions,
+                canvasElement,
+                displaySize,
+                drawFunctions,
+            );
             break;
         }
         case "VIDEO": {
+            const mtcnnOptions = new faceapi.MtcnnOptions({
+                // "limiting the search space to larger faces for webcam detection"
+                minFaceSize: 200,
+            });
+            const drawFunctions = ["drawDetections"];
             const detectInterval = setInterval(
                 async () => {
-                    const mtcnnOptions = new faceapi.MtcnnOptions({
-                        // "limiting the search space to larger faces for webcam detection"
-                        minFaceSize: 200,
-                    });
                     faceDescriptions = await faceapi
                         .detectAllFaces(inputElement, mtcnnOptions);
-                    drawFaceDescriptions(faceDescriptions, canvasElement, displaySize);
+                    drawFaceDescriptions(
+                        faceDescriptions,
+                        canvasElement,
+                        displaySize,
+                        drawFunctions,
+                    );
                 },
                 SETTINGS.videoFaceDetectionIntervalMs,
             );
@@ -110,16 +126,26 @@ async function detectFacesFromPlayground(playgroundElement) {
     output(`DONE detecting face '${playgroundName}'`);
 }
 
-function drawFaceDescriptions(faceDescriptions, canvasElement, displaySize) {
+function drawFaceDescriptions(
+    faceDescriptions,
+    canvasElement,
+    displaySize,
+    drawFunctionNames = ["drawDetections"],
+) {
     output("Drawing face descriptions...")
     faceDescriptions = faceapi.resizeResults(
         faceDescriptions,
         displaySize,
     );
     faceapi.matchDimensions(canvasElement, displaySize);
-    faceapi.draw.drawDetections(canvasElement, faceDescriptions);
-    faceapi.draw.drawFaceLandmarks(canvasElement, faceDescriptions);
-    faceapi.draw.drawFaceExpressions(canvasElement, faceDescriptions);
+    drawFunctionNames.forEach(drawFunc => {
+        const draw = faceapi.draw[drawFunc];
+        if (draw) {
+            draw(canvasElement, faceDescriptions);
+        } else {
+            error(`Invalid draw function name '${drawFunc}'`);
+        }
+    });
 }
 
 async function runFaceDetections() {
@@ -173,8 +199,8 @@ function setupWebcam() {
     const setMediaStreamForVideo = (mediaStream, videoElement) => {
         videoElement.srcObject = mediaStream;
         const parentEl = videoElement.parentElement;
-        if (parentEl &&
-            parentEl.matches(SETTINGS.dom.playgroundSelector)) {
+        if (parentEl /* &&
+            parentEl.matches(SETTINGS.dom.playgroundSelector) */) {
             const streamVideoSettings = mediaStream
                 .getVideoTracks()[0]
                 .getSettings();
