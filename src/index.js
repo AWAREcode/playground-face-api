@@ -132,7 +132,6 @@ function drawFaceDescriptions(
     displaySize,
     drawFunctionNames = ["drawDetections"],
 ) {
-    output("Drawing face descriptions...")
     faceDescriptions = faceapi.resizeResults(
         faceDescriptions,
         displaySize,
