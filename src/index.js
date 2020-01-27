@@ -8,14 +8,14 @@ const SETTINGS = {
     },
 
     modelsToLoad: [
-        // "ssdMobilenetv1",
+        "ssdMobilenetv1",
         // "tinyFaceDetector",
         // "tinyYolov2",
         "mtcnn",
-        // "faceLandmark68Net",
+        "faceLandmark68Net",
         // "faceLandmark68TinyNet",
-        // "faceRecognitionNet",
-        // "faceExpressionNet",
+        "faceRecognitionNet",
+        "faceExpressionNet",
         // "ageGenderNet",
     ],
 };
@@ -64,29 +64,47 @@ async function detectFacesFromPlayground(playgroundElement) {
 
     output(`Detecting face '${playgroundName}'...`);
 
-    const detectOptions = new faceapi.SsdMobilenetv1Options({
-        minConfidence: 0.5,
-    });
-
     const nonNumRe = /\D/g;
     const displaySize = {
         width:  playgroundElement.style.width.replace(nonNumRe, ""),
         height: playgroundElement.style.height.replace(nonNumRe, ""),
     };
 
-    const fullFaceDescriptions = faceapi.resizeResults(
-        await faceapi
-            .detectAllFaces(inputElement, detectOptions)
-            .withFaceLandmarks()
-            .withFaceDescriptors()
-            .withFaceExpressions(),
+    const faceDescriptions = faceapi.resizeResults(
+        await generateFaceDescriptionsFromElement(inputElement),
         displaySize,
-   );
+    );
 
     faceapi.matchDimensions(canvasElement, displaySize);
-    drawFaceDescriptions(fullFaceDescriptions, canvasElement);
+    drawFaceDescriptions(faceDescriptions, canvasElement);
 
     output(`DONE detecting face '${playgroundName}'`);
+}
+
+async function generateFaceDescriptionsFromElement(inputElement) {
+    if (!inputElement) error("No element given to generateFaceDescriptionsFromElement");
+
+    const tagName = inputElement.tagName;
+    switch (tagName) {
+        case "IMG": {
+            const detectOptions = new faceapi.SsdMobilenetv1Options({
+                minConfidence: 0.5,
+            });
+            return await faceapi
+                .detectAllFaces(inputElement, detectOptions)
+                .withFaceLandmarks()
+                .withFaceDescriptors()
+                .withFaceExpressions();
+        }
+        case "VIDEO":
+            return await faceapi
+                .detectAllFaces(inputElement)
+                .withFaceLandmarks();
+            // .withFaceDescriptors()
+            // .withFaceExpressions();
+        default:
+            error(`Invalid tag '${tagName}' as input element for generating face descriptions`);
+    }
 }
 
 function drawFaceDescriptions(faceDescriptions, canvasElement) {
