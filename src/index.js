@@ -8,14 +8,14 @@ const SETTINGS = {
     },
 
     modelsToLoad: [
-        "ssdMobilenetv1",
+        // "ssdMobilenetv1",
         // "tinyFaceDetector",
         // "tinyYolov2",
-        // "mtcnn",
-        "faceLandmark68Net",
+        "mtcnn",
+        // "faceLandmark68Net",
         // "faceLandmark68TinyNet",
-        "faceRecognitionNet",
-        "faceExpressionNet",
+        // "faceRecognitionNet",
+        // "faceExpressionNet",
         // "ageGenderNet",
     ],
 };
@@ -74,26 +74,14 @@ async function detectFacesFromPlayground(playgroundElement) {
         height: playgroundElement.style.height.replace(nonNumRe, ""),
     };
 
-    let fullFaceDescriptions;
-
-    // TODO: Properly print error to output,
-    //       this isn't working properly right now.
-    try {
-        const results = await (
-            faceapi
-                .detectAllFaces(inputElement, detectOptions)
-                .withFaceLandmarks()
-                .withFaceDescriptors()
-                .withFaceExpressions()
-        ); // .then(descs => descs).catch(err),
-
-        fullFaceDescriptions = faceapi.resizeResults(
-            results,
-            displaySize,
-        );
-    } catch (e) {
-        error(`Error detecting face '${playgroundName}':\n${e}`);
-    }
+    const fullFaceDescriptions = faceapi.resizeResults(
+        await faceapi
+            .detectAllFaces(inputElement, detectOptions)
+            .withFaceLandmarks()
+            .withFaceDescriptors()
+            .withFaceExpressions(),
+        displaySize,
+   );
 
     faceapi.matchDimensions(canvasElement, displaySize);
     drawFaceDescriptions(fullFaceDescriptions, canvasElement);
@@ -127,9 +115,24 @@ async function runFaceDetections() {
 
 function main() {
     window.onload = () => {
+        setupError();
         setupButtons();
         setupWebcam();
     };
+}
+
+// TODO: This is super hacky...
+//       But it works!
+function setupError() {
+    // Overwrite `Error` class, so any thrown error
+    // will always call our `error` function.
+    class CustomError extends Error {
+        constructor(...args) {
+            error(args.join("\n  "));
+            super(...args);
+        }
+    }
+    Error = CustomError;
 }
 
 function setupButtons() {
@@ -168,7 +171,6 @@ function setupWebcam() {
             .getUserMedia(mediaConstraints)
             .then(mediaStream => setMediaStreamForVideo(mediaStream, videoElement))
             .catch(() => error("Couldn't access webcam for video element"));
-
     });
 }
 
