@@ -1,8 +1,10 @@
 const SETTINGS = {
     dom: {
-        playgroundNameAttribute: "data-name",
-        playgroundInputSelector: ".playground-input",
+        playgroundSelector:       ".playground",
+        playgroundNameAttribute:  "data-name",
+        playgroundInputSelector:  ".playground-input",
         playgroundCanvasSelector: "canvas",
+        videoWebcamSelector:      "video.webcam",
     },
 
     modelsToLoad: [
@@ -52,8 +54,13 @@ async function detectFacesFromPlayground(playgroundElement) {
         "UNNAMED";
     const inputElement = playgroundElement
         .querySelector(SETTINGS.dom.playgroundInputSelector);
+    const canvasElement = playgroundElement
+        .querySelector(SETTINGS.dom.playgroundCanvasSelector);
 
-    if (!inputElement) error("Playground needs an element to be used as the input");
+    if (!inputElement)
+        error("Playground needs an element to be used as the input");
+    if (!canvasElement)
+        error("Playground needs a canvas element");
 
     output(`Detecting face '${playgroundName}'...`);
 
@@ -110,7 +117,7 @@ async function runFaceDetections() {
     showLoading();
 
     const playgrounds = Array.from(
-        document.getElementsByClassName("playground")
+        document.querySelectorAll(SETTINGS.dom.playgroundSelector)
     );
 
     Promise
@@ -120,12 +127,49 @@ async function runFaceDetections() {
 
 function main() {
     window.onload = () => {
-        const loadBtnEl = document.getElementById("btn-load");
-        loadBtnEl.onclick = loadModels;
-
-        const runBtnEl = document.getElementById("btn-run");
-        runBtnEl.onclick = runFaceDetections;
+        setupButtons();
+        setupWebcam();
     };
+}
+
+function setupButtons() {
+    const loadBtnEl = document.getElementById("btn-load");
+    loadBtnEl.onclick = loadModels;
+
+    const runBtnEl = document.getElementById("btn-run");
+    runBtnEl.onclick = runFaceDetections;
+}
+
+function setupWebcam() {
+    const setMediaStreamForVideo = (mediaStream, videoElement) => {
+        videoElement.srcObject = mediaStream;
+        const parentEl = videoElement.parentElement;
+        if (parentEl &&
+            parentEl.matches(SETTINGS.dom.playgroundSelector)) {
+            const streamVideoSettings = mediaStream
+                .getVideoTracks()[0]
+                .getSettings();
+            parentEl.style.width = `${streamVideoSettings.width}px`;
+            parentEl.style.height = `${streamVideoSettings.height}px`;
+        }
+    };
+
+    const videoElements = Array.from(
+        document.querySelectorAll(SETTINGS.dom.videoWebcamSelector)
+    );
+
+    const mediaConstraints = {
+        video: true,
+        audio: false,
+    };
+    videoElements.forEach(videoElement => {
+        navigator
+            .mediaDevices
+            .getUserMedia(mediaConstraints)
+            .then(mediaStream => setMediaStreamForVideo(mediaStream, videoElement))
+            .catch(() => error("Couldn't access webcam for video element"));
+
+    });
 }
 
 main();
