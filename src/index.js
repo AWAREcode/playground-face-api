@@ -7,6 +7,8 @@ const SETTINGS = {
         videoWebcamSelector:      "video.webcam",
     },
 
+    videoFaceDetectionIntervalMs: 200,
+
     modelsToLoad: [
         "ssdMobilenetv1",
         // "tinyFaceDetector",
@@ -22,6 +24,7 @@ const SETTINGS = {
 
 const STATE = {
     areModelsLoaded: false,
+    videoFaceDetectionIntervals: [],
 };
 
 async function loadModels() {
@@ -62,27 +65,13 @@ async function detectFacesFromPlayground(playgroundElement) {
     if (!canvasElement)
         error("Playground needs a canvas element");
 
-    output(`Detecting face '${playgroundName}'...`);
-
     const nonNumRe = /\D/g;
     const displaySize = {
         width:  playgroundElement.style.width.replace(nonNumRe, ""),
         height: playgroundElement.style.height.replace(nonNumRe, ""),
     };
 
-    const faceDescriptions = faceapi.resizeResults(
-        await generateFaceDescriptionsFromElement(inputElement),
-        displaySize,
-    );
-
-    faceapi.matchDimensions(canvasElement, displaySize);
-    drawFaceDescriptions(faceDescriptions, canvasElement);
-
-    output(`DONE detecting face '${playgroundName}'`);
-}
-
-async function generateFaceDescriptionsFromElement(inputElement) {
-    if (!inputElement) error("No element given to generateFaceDescriptionsFromElement");
+    output(`Detecting face '${playgroundName}'...`);
 
     const tagName = inputElement.tagName;
     switch (tagName) {
@@ -90,25 +79,44 @@ async function generateFaceDescriptionsFromElement(inputElement) {
             const detectOptions = new faceapi.SsdMobilenetv1Options({
                 minConfidence: 0.5,
             });
-            return await faceapi
+            const faceDescriptions = await faceapi
                 .detectAllFaces(inputElement, detectOptions)
                 .withFaceLandmarks()
                 .withFaceDescriptors()
                 .withFaceExpressions();
+            drawFaceDescriptions(faceDescriptions, canvasElement, displaySize);
+            break;
         }
-        case "VIDEO":
-            return await faceapi
-                .detectAllFaces(inputElement)
-                .withFaceLandmarks();
-            // .withFaceDescriptors()
-            // .withFaceExpressions();
+        case "VIDEO": {
+            const detectInterval = setInterval(
+                async () => {
+                    const mtcnnOptions = new faceapi.MtcnnOptions({
+                        // "limiting the search space to larger faces for webcam detection"
+                        minFaceSize: 200,
+                    });
+                    faceDescriptions = await faceapi
+                        .detectAllFaces(inputElement, mtcnnOptions);
+                    drawFaceDescriptions(faceDescriptions, canvasElement, displaySize);
+                },
+                SETTINGS.videoFaceDetectionIntervalMs,
+            );
+            STATE.videoFaceDetectionIntervals.push(detectInterval);
+            break;
+        }
         default:
             error(`Invalid tag '${tagName}' as input element for generating face descriptions`);
     }
+
+    output(`DONE detecting face '${playgroundName}'`);
 }
 
-function drawFaceDescriptions(faceDescriptions, canvasElement) {
+function drawFaceDescriptions(faceDescriptions, canvasElement, displaySize) {
     output("Drawing face descriptions...")
+    faceDescriptions = faceapi.resizeResults(
+        faceDescriptions,
+        displaySize,
+    );
+    faceapi.matchDimensions(canvasElement, displaySize);
     faceapi.draw.drawDetections(canvasElement, faceDescriptions);
     faceapi.draw.drawFaceLandmarks(canvasElement, faceDescriptions);
     faceapi.draw.drawFaceExpressions(canvasElement, faceDescriptions);
