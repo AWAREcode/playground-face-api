@@ -1,0 +1,22 @@
+{
+    "name": "playground-face-api",
+    "version": "0.1.0",
+    "description": "Playing around with face-api.js",
+    "main": "index.js",
+    "dependencies": {},
+    "devDependencies": {},
+    "scripts": {
+        "start": "bin/launch",
+        "build": "bin/build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/AWAREcode/playground-face-api.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/AWAREcode/playground-face-api/issues"
+    },
+    "homepage": "https://github.com/AWAREcode/playground-face-api#readme"
+}
