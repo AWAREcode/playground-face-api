@@ -1,0 +1,49 @@
+#!/bin/bash
+# Compiles and bundles the typescript.
+# All arguments are passed to the underlying `tsc` command.
+
+# shellcheck source=./share.sh
+_dir="$( dirname "$0" )"
+source "${_dir}/share.sh"
+unset _dir
+
+PATH="${ROOT}/node_modules/.bin:${PATH}"
+
+function main {
+    check_installed_tsc
+    build_js "$@"
+}
+
+# shellcheck disable=SC2155
+function check_installed_tsc {
+    is_available "tsc" && return 0
+
+    local tsc_display="$( colored "$COLOR_CODE" "tsc" )"
+    local yarn_display="$( colored "$COLOR_CODE" "yarn" )"
+
+    msg "Warning: ${tsc_display} is not installed."
+    if is_available "yarn"; then
+        if prompt_question \
+            "Install all npm dependencies with ${yarn_install_display}?"
+        then
+            pushd "$ROOT" || exit 1 &> /dev/null
+            also_to_stderr=1 try_run \
+                "yarn install"
+            popd || exit 1 &> /dev/null
+        else
+            exit 0
+        fi
+    else
+        err "\
+${yarn_display} is not installed,
+cannot automatically install dependencies.
+Install ${yarn_display} to run this project."
+    fi
+}
+
+function build_js {
+    local args=( "$@" )
+    echo "TODO: RUN TSC"
+}
+
+main "$@"

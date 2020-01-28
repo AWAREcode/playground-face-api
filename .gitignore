@@ -1,3 +1,4 @@
+/node_modules/
 /bin/util.sh
 *.log
 /logs/
