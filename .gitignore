@@ -1,4 +1,7 @@
 /node_modules/
+.tsc-info
+/public/bundle.js
+
 /bin/util.sh
 *.log
 /logs/
