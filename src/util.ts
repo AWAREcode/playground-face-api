@@ -1,23 +1,23 @@
 const OrigError = Error;
 
-function showLoading() {
+export function showLoading() {
     const loaderEl = getLoaderElement();
     loaderEl.classList.remove("hidden");
 }
 
-function hideLoading() {
+export function hideLoading() {
     const loaderEl = getLoaderElement();
     loaderEl.classList.add("hidden");
 }
 
-function output(msg) {
+export function output(msg: string) {
     const newEl = document.createElement("div");
     newEl.classList.add("output--msg");
     newEl.innerText = msg;
     addElementToOutput(newEl);
 }
 
-function error(errmsg) {
+export function error(errmsg: string) {
     const newEl = document.createElement("div");
     newEl.classList.add("output--err");
     newEl.innerText = errmsg;
@@ -25,7 +25,7 @@ function error(errmsg) {
     throw new OrigError(errmsg);
 }
 
-function addElementToOutput(childEl) {
+function addElementToOutput(childEl: HTMLElement) {
     const outputEl = getOutputElement();
     outputEl.appendChild(childEl);
     outputEl.scrollTop = outputEl.scrollHeight;
@@ -37,8 +37,8 @@ function getLoaderElement() {
     return el;
 }
 
-function getOutputElement() {
+function getOutputElement(): HTMLElement {
     const el = document.getElementById("output");
     if (!el) error("No output element");
-    return el;
+    return el as HTMLElement;
 }

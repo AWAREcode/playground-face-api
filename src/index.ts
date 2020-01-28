@@ -1,3 +1,8 @@
+import faceapi from "face-api.js";
+import { SETTINGS, STATE, ModelType } from "settings";
+import { showLoading, hideLoading, output, error } from "util";
+import { setupError, setupButtons, setupWebcam } from "setup.js";
+
 async function loadModels() {
     STATE.areModelsLoaded = false;
 
@@ -11,7 +16,7 @@ async function loadModels() {
 
     await Promise.all(
         SETTINGS.modelsToLoad.map(
-            model => faceapi.nets[model].loadFromUri(MODEL_URL)
+            model => ModelType.getNet(model).loadFromUri(MODEL_URL)
         )
     );
 
@@ -20,15 +25,15 @@ async function loadModels() {
     STATE.areModelsLoaded = true;
 }
 
-async function detectFacesFromPlayground(playgroundElement) {
+async function detectFacesFromPlayground(playgroundElement: HTMLElement) {
     if (!playgroundElement) error("Playground wrapper element not given");
 
     const playgroundName = playgroundElement
         .getAttribute(SETTINGS.dom.playgroundNameAttribute) ||
         "UNNAMED";
-    const inputElement = playgroundElement
+    let inputElement = playgroundElement
         .querySelector(SETTINGS.dom.playgroundInputSelector);
-    const canvasElement = playgroundElement
+    let canvasElement = playgroundElement
         .querySelector(SETTINGS.dom.playgroundCanvasSelector);
 
     if (!inputElement)
@@ -36,10 +41,17 @@ async function detectFacesFromPlayground(playgroundElement) {
     if (!canvasElement)
         error("Playground needs a canvas element");
 
+    inputElement = inputElement as HTMLElement;
+    canvasElement = canvasElement as HTMLCanvasElement;
+
     const nonNumRe = /\D/g;
     const displaySize = {
-        width:  playgroundElement.style.width.replace(nonNumRe, ""),
-        height: playgroundElement.style.height.replace(nonNumRe, ""),
+        width:  Number(
+            playgroundElement.style.width.replace(nonNumRe, "")
+        ),
+        height: Number(
+            playgroundElement.style.height.replace(nonNumRe, "")
+        ),
     };
 
     output(`Detecting face '${playgroundName}'...`);
@@ -50,46 +62,60 @@ async function detectFacesFromPlayground(playgroundElement) {
             const detectOptions = new faceapi.SsdMobilenetv1Options({
                 minConfidence: 0.5,
             });
-            const drawFunctions = [
-                "drawDetections",
-                "drawFaceLandmarks",
-                "drawFaceExpressions",
-            ];
             const faceDescriptions = await faceapi
-                .detectAllFaces(inputElement, detectOptions)
+                .detectAllFaces(inputElement as faceapi.TNetInput, detectOptions)
                 .withFaceLandmarks()
                 // .withFaceDescriptors()
                 .withFaceExpressions();
-            drawFaceDescriptions(
-                faceDescriptions,
-                canvasElement,
+            faceapi.matchDimensions(
+                canvasElement as any,
                 displaySize,
-                drawFunctions,
+            );
+            faceapi.draw.drawDetections(
+                canvasElement as HTMLCanvasElement,
+                faceDescriptions,
+            );
+            faceapi.draw.drawFaceLandmarks(
+                canvasElement as HTMLCanvasElement,
+                faceDescriptions,
+            );
+            faceapi.draw.drawFaceExpressions(
+                canvasElement as HTMLCanvasElement,
+                faceDescriptions,
             );
             break;
         }
+
         case "VIDEO": {
             const mtcnnOptions = new faceapi.MtcnnOptions({
-                minConfidence: 0.5, // I don't even know if this property is available for MtcnnOptions...
+                // minConfidence: 0.5, // I don't even know if this property is available for MtcnnOptions...
                 // "limiting the search space to larger faces for webcam detection"
                 minFaceSize: 150,
             });
-            const drawFunctions = [
-                "drawDetections",
-                "drawFaceLandmarks",
-                "drawFaceExpressions",
-            ];
             const detectInterval = setInterval(
                 async () => {
-                    faceDescriptions = await faceapi
-                        .detectAllFaces(inputElement, mtcnnOptions)
+                    const faceDescriptions = faceapi.resizeResults(
+                        await faceapi
+                        .detectAllFaces(inputElement as faceapi.TNetInput, mtcnnOptions)
                         .withFaceLandmarks()
-                        .withFaceExpressions();
-                    drawFaceDescriptions(
-                        faceDescriptions,
-                        canvasElement,
+                        .withFaceExpressions(),
                         displaySize,
-                        drawFunctions,
+                    );
+                    faceapi.matchDimensions(
+                        canvasElement as any,
+                        displaySize,
+                    );
+                    faceapi.draw.drawDetections(
+                        canvasElement as HTMLCanvasElement,
+                        faceDescriptions,
+                    );
+                    faceapi.draw.drawFaceLandmarks(
+                        canvasElement as HTMLCanvasElement,
+                        faceDescriptions,
+                    );
+                    faceapi.draw.drawFaceExpressions(
+                        canvasElement as HTMLCanvasElement,
+                        faceDescriptions,
                     );
                 },
                 SETTINGS.videoFaceDetectionIntervalMs,
@@ -104,28 +130,6 @@ async function detectFacesFromPlayground(playgroundElement) {
     output(`DONE detecting face '${playgroundName}'`);
 }
 
-// TODO: Refactor these parameters. Should take a single options object.
-function drawFaceDescriptions(
-    faceDescriptions,
-    canvasElement,
-    displaySize,
-    drawFunctionNames = ["drawDetections"],
-) {
-    faceDescriptions = faceapi.resizeResults(
-        faceDescriptions,
-        displaySize,
-    );
-    faceapi.matchDimensions(canvasElement, displaySize);
-    drawFunctionNames.forEach(drawFunc => {
-        const draw = faceapi.draw[drawFunc];
-        if (draw) {
-            draw(canvasElement, faceDescriptions);
-        } else {
-            error(`Invalid draw function name '${drawFunc}'`);
-        }
-    });
-}
-
 async function runFaceDetections() {
     if (!STATE.areModelsLoaded) {
         error("Models aren't loaded yet");
@@ -136,13 +140,16 @@ async function runFaceDetections() {
 
     showLoading();
 
-    const playgrounds = Array.from(
+    const playgrounds: Array<HTMLElement> = Array.from(
         document.querySelectorAll(SETTINGS.dom.playgroundSelector)
     );
 
     Promise
-        .all(playgrounds.map(detectFacesFromPlayground))
-        .finally(hideLoading);
+        .all(playgrounds.map(
+            (playground) => detectFacesFromPlayground(playground)
+        ))
+        .then(hideLoading)
+        .catch(hideLoading);
 }
 
 function clearVideoDetectionIntervals() {

@@ -70,3 +70,5 @@ function setupWebcam() {
             .catch(() => error("Couldn't access webcam for video element"));
     });
 }
+
+export { setupError, setupButtons, setupWebcam };

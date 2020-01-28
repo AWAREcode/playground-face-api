@@ -10,40 +10,41 @@ unset _dir
 PATH="${ROOT}/node_modules/.bin:${PATH}"
 
 function main {
+    ( pushd "$ROOT" || exit 1 ) &> /dev/null
     check_installed_tsc
     build_js "$@"
+    ( popd || exit 1 ) &> /dev/null
 }
 
 # shellcheck disable=SC2155
 function check_installed_tsc {
-    is_available "tsc" && return 0
+    [ -f "${ROOT}/node_modules/.bin/tsc" ] && return 0
 
     local tsc_display="$( colored "$COLOR_CODE" "tsc" )"
-    local yarn_display="$( colored "$COLOR_CODE" "yarn" )"
+    local npm_display="$( colored "$COLOR_CODE" "npm" )"
 
     msg "Warning: ${tsc_display} is not installed."
     if is_available "yarn"; then
         if prompt_question \
-            "Install all npm dependencies with ${yarn_install_display}?"
+            "Install all npm dependencies with ${npm_display}?"
         then
-            pushd "$ROOT" || exit 1 &> /dev/null
             also_to_stderr=1 try_run \
-                "yarn install"
-            popd || exit 1 &> /dev/null
+                "npm install"
         else
             exit 0
         fi
     else
         err "\
-${yarn_display} is not installed,
+${npm_display} is not installed,
 cannot automatically install dependencies.
-Install ${yarn_display} to run this project."
+Install ${npm_display} to run this project."
     fi
 }
 
 function build_js {
     local args=( "$@" )
-    echo "TODO: RUN TSC"
+    msg "Building JavaScript..."
+    tsc-bundle "./tsconfig.json" "${args[@]}"
 }
 
 main "$@"
