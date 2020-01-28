@@ -4,10 +4,9 @@
 # For example, to start the server on port "9000", use `-p 9000`.
 # See `miniserve --help` for more info.
 
-# shellcheck source=./util.sh
+# shellcheck source=./share.sh
 _dir="$( dirname "$0" )"
-[ -f "${_dir}/util.sh" ] || bash "${_dir}/download-util.sh" || exit 1
-source "${_dir}/util.sh"
+source "${_dir}/share.sh"
 unset _dir
 
 function main {
@@ -38,21 +37,6 @@ ${cargo_display} is not installed,
 cannot automatically install ${miniserve_display}.
 Install ${miniserve_display} or ${cargo_display}, then run this script again."
     fi
-}
-
-function prompt_question {
-    local msg="$1 [y|n] "
-    local input=
-    while [ -z "$input" ]; do
-        echo -en "$msg"
-        read -rn1 input
-        echo
-        case "${input:0:1}" in
-            "y"|"Y") return 0;;
-            "n"|"N") return 1;;
-            *) input=;;
-        esac
-    done
 }
 
 function launch_server {
