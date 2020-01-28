@@ -21,5 +21,9 @@ For example, to specify a custom interface and port for the server to run on ...
 bin/launch -i 0.0.0.0 -p 3000
 ```
 
+## License
+Distributed under the terms of the [MIT license][license].
+
 [`face-api.js`]: https://github.com/justadudewhohacks/face-api.js
 [`miniserve`]:   https://github.com/svenstaro/miniserve
+[license]:       ./LICENSE
