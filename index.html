@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="./public/style.css" />
     </head>
     <body>
+        <!-- BUTTONS -->
         <div class="btn-group">
             <input
                 id="btn-load"
@@ -24,6 +25,7 @@
                 value="Stop video detections" />
         </div>
 
+        <!-- PLAYGROUNDS -->
         <div class="playground-group">
             <!-- PLAYGROUND TEMPLATE -->
             <!--
@@ -71,11 +73,15 @@
             </div>
         </div>
 
+        <!-- LOADER -->
         <div class="loader-wrapper hidden">
             <div class="loader"></div>
         </div>
+
+        <!-- OUTPUT -->
         <pre id="output"></pre>
 
+        <!-- SCRIPTS -->
         <script
             type="text/javascript"
             src="https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.0/dist/face-api.min.js">
@@ -91,6 +97,10 @@
         <script
             type="text/javascript"
             src="./src/setup.js">
+        </script>
+        <script
+            type="text/javascript"
+            src="./src/face-detector.js">
         </script>
         <script
             type="text/javascript"

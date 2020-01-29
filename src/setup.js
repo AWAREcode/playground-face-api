@@ -1,18 +1,20 @@
 // TODO: This is super hacky...
 //       But it works!
 function setupError() {
+    output("Setup error messaging...");
     // Overwrite `Error` class, so any thrown error
     // will always call our `error` function.
     class CustomError extends Error {
         constructor(...args) {
-            error(args.join("\n  "));
             super(...args);
+            error(args.join("\n  "));
         }
     }
     Error = CustomError;
 }
 
 function setupButtons() {
+    output("Setup buttons...");
     const btnConfigs = [
         {
             selector: "#btn-load",
@@ -39,6 +41,7 @@ function setupButtons() {
 }
 
 function setupWebcam() {
+    output("Setup webcam...");
     const setMediaStreamForVideo = (mediaStream, videoElement) => {
         videoElement.srcObject = mediaStream;
         const parentEl = videoElement.parentElement;
