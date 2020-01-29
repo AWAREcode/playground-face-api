@@ -1,10 +1,10 @@
 const SETTINGS = {
     dom: {
-        playgroundSelector:       ".playground:not(.disabled)",
-        playgroundNameAttribute:  "data-name",
-        playgroundInputSelector:  ".playground-input",
-        playgroundCanvasSelector: "canvas",
-        videoWebcamSelector:      "video.webcam",
+        detectorSelector:       ".detector:not(.disabled)",
+        detectorNameAttribute:  "data-name",
+        detectorInputSelector:  ".detector-input",
+        detectorCanvasSelector: "canvas",
+        videoWebcamSelector:    "video.webcam",
     },
 
     videoFaceDetectionIntervalMs: 200,

@@ -46,7 +46,7 @@ function setupWebcam() {
         videoElement.srcObject = mediaStream;
         const parentEl = videoElement.parentElement;
         if (parentEl /* &&
-            parentEl.matches(SETTINGS.dom.playgroundSelector) */) {
+            parentEl.matches(SETTINGS.dom.detectorSelector) */) {
             const streamVideoSettings = mediaStream
                 .getVideoTracks()[0]
                 .getSettings();

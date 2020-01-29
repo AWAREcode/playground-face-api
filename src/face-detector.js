@@ -20,29 +20,29 @@ async function loadModels() {
     STATE.areModelsLoaded = true;
 }
 
-async function detectFacesFromPlayground(playgroundElement) {
-    if (!playgroundElement) error("Playground wrapper element not given");
+async function detectFacesFromDetectorElement(detectorElement) {
+    if (!detectorElement) error("Detector wrapper element not given");
 
-    const playgroundName = playgroundElement
-        .getAttribute(SETTINGS.dom.playgroundNameAttribute) ||
+    const detectorName = detectorElement
+        .getAttribute(SETTINGS.dom.detectorNameAttribute) ||
         "UNNAMED";
-    const inputElement = playgroundElement
-        .querySelector(SETTINGS.dom.playgroundInputSelector);
-    const canvasElement = playgroundElement
-        .querySelector(SETTINGS.dom.playgroundCanvasSelector);
+    const inputElement = detectorElement
+        .querySelector(SETTINGS.dom.detectorInputSelector);
+    const canvasElement = detectorElement
+        .querySelector(SETTINGS.dom.detectorCanvasSelector);
 
     if (!inputElement)
-        error("Playground needs an element to be used as the input");
+        error("Detector needs an element to be used as the input");
     if (!canvasElement)
-        error("Playground needs a canvas element");
+        error("Detector needs a canvas element");
 
     const nonNumRe = /\D/g;
     const displaySize = {
-        width:  playgroundElement.style.width.replace(nonNumRe, ""),
-        height: playgroundElement.style.height.replace(nonNumRe, ""),
+        width:  detectorElement.style.width.replace(nonNumRe, ""),
+        height: detectorElement.style.height.replace(nonNumRe, ""),
     };
 
-    output(`Detecting face '${playgroundName}'...`);
+    output(`Detecting face '${detectorName}'...`);
 
     const tagName = inputElement.tagName;
     switch (tagName) {
@@ -101,7 +101,7 @@ async function detectFacesFromPlayground(playgroundElement) {
             error(`Invalid tag '${tagName}' as input element for generating face descriptions`);
     }
 
-    output(`DONE detecting face '${playgroundName}'`);
+    output(`DONE detecting face '${detectorName}'`);
 }
 
 // TODO: Refactor these parameters. Should take a single options object.
@@ -136,12 +136,12 @@ async function runFaceDetections() {
 
     showLoading();
 
-    const playgrounds = Array.from(
-        document.querySelectorAll(SETTINGS.dom.playgroundSelector)
+    const detectors = Array.from(
+        document.querySelectorAll(SETTINGS.dom.detectorSelector)
     );
 
     Promise
-        .all(playgrounds.map(detectFacesFromPlayground))
+        .all(detectors.map(detectFacesFromDetectorElement))
         .finally(hideLoading);
 }
 
