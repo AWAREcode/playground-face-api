@@ -81,7 +81,7 @@ async function detectFacesFromPlayground(playgroundElement) {
             ];
             const detectInterval = setInterval(
                 async () => {
-                    faceDescriptions = await faceapi
+                    const faceDescriptions = await faceapi
                         .detectAllFaces(inputElement, mtcnnOptions)
                         .withFaceLandmarks()
                         .withFaceExpressions();
